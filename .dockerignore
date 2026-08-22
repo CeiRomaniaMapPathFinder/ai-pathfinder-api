@@ -1,0 +1,12 @@
+.env
+.env.*
+*.pem
+*.key
+.git
+.github
+target/
+docs/
+README.md
+*.md
+.idea/
+.vscode/
