@@ -1,13 +1,12 @@
-package com.ceiromania.pathfinder_api;
+package com.ceiromania.pathfinder;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class PathfinderApiApplicationTests {
+class PathfinderApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void contextLoads() {
+    }
 }
