@@ -11,8 +11,7 @@ RUN ./mvnw -B clean package -DskipTests
 FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app
 RUN addgroup -S app && adduser -S -G app app
-COPY --from=build /build/target/*.jar app.jar
-RUN chown -R app:app /app
+COPY --chown=app:app --from=build /build/target/*.jar app.jar
 USER app
 ARG GIT_SHA=unknown
 ENV APP_COMMIT=$GIT_SHA
