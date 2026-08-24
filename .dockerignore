@@ -1,7 +1,9 @@
-.env
-.env.*
+.env*
 *.pem
 *.key
+*.p12
+*.jks
+*.keystore
 .git
 .github
 target/
@@ -10,3 +12,4 @@ README.md
 *.md
 .idea/
 .vscode/
+.DS_Store

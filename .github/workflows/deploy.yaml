@@ -19,6 +19,7 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -45,6 +46,8 @@ jobs:
         with:
           context: .
           push: true
+          build-args: |
+            GIT_SHA=${{ github.sha }}
           tags: |
             ${{ env.IMAGE }}:main
             ${{ env.IMAGE }}:sha-${{ github.sha }}
@@ -55,20 +58,38 @@ jobs:
         env:
           WEBHOOK: ${{ secrets.DOKPLOY_DEPLOY_WEBHOOK }}
         run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "::error::Secret DOKPLOY_DEPLOY_WEBHOOK is not set."
+            exit 1
+          fi
           curl --fail --silent --show-error -X POST "$WEBHOOK" > /dev/null
           echo "Deploy triggered."
 
-      - name: Wait for it to come back healthy
+      - name: Wait for this commit to go live
         env:
           HEALTH_URL: ${{ vars.PUBLIC_HEALTH_URL }}
+          EXPECTED: ${{ github.sha }}
         run: |
           if [ -z "$HEALTH_URL" ]; then
-            echo "::warning::PUBLIC_HEALTH_URL not set yet — no public app domain configured. Skipping."
-            exit 0
+            echo "::error::Repo variable PUBLIC_HEALTH_URL is not set (e.g. https://your-domain/api/health)."
+            exit 1
           fi
-          for i in $(seq 1 30); do
-            code=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || true)
-            [ "$code" = "200" ] && { echo "Healthy."; exit 0; }
-            sleep 3
+          for i in $(seq 1 60); do
+            live=$(curl -sf --max-time 5 "$HEALTH_URL" \
+              | sed -n 's/.*"commit"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+            if [ "$live" = "$EXPECTED" ]; then
+              echo "Live on $EXPECTED after $((i * 5))s."
+              exit 0
+            fi
+            echo "attempt $i/60 — live=${live:-<no response>}"
+            sleep 5
           done
-          echo "::error::Not healthy after 90s."; exit 1
+          echo "::error::$EXPECTED did not go live within 300s. Last seen: ${live:-<no response>}"
+          exit 1
+
+      - name: Rollback hint
+        if: failure()
+        run: |
+          echo "Deploy failed. To roll back, point the Dokploy app at a previous tag:"
+          echo "  ${{ env.IMAGE }}:sha-<previous-commit-sha>"
+          echo "then redeploy from the Dokploy UI."
