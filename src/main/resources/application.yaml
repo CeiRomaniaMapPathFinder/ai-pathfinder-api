@@ -1,3 +1,6 @@
 spring:
   application:
     name: pathfinder-api
+
+app:
+  commit: ${APP_COMMIT:unknown}
