@@ -84,23 +84,23 @@ jobs:
       - name: Wait for this commit to go live
         env:
           HEALTH_URL: ${{ vars.PUBLIC_HEALTH_URL }}
-          EXPECTED: deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+          EXPECTED: ${{ github.sha }}
         run: |
           if [ -z "$HEALTH_URL" ]; then
             echo "::error::Repo variable PUBLIC_HEALTH_URL is not set (e.g. https://your-domain/api/health)."
             exit 1
           fi
-          for i in $(seq 1 6); do
+          for i in $(seq 1 60); do
             live=$(curl -sf --max-time 5 "$HEALTH_URL" \
               | sed -n 's/.*"commit"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
             if [ "$live" = "$EXPECTED" ]; then
               echo "Live on $EXPECTED after $((i * 5))s."
               exit 0
             fi
-            echo "attempt $i/6 — live=${live:-<no response>}"
+            echo "attempt $i/60 — live=${live:-<no response>}"
             sleep 5
           done
-          echo "::error::$EXPECTED did not go live within 30s. Last seen: ${live:-<no response>}"
+          echo "::error::$EXPECTED did not go live within 300s. Last seen: ${live:-<no response>}"
           exit 1
 
       - name: Roll back to the last live commit
