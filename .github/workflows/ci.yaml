@@ -1,9 +1,8 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,9 +14,10 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-        name: Checkout code repo code
+        name: Checkout repo code
 
       - uses: actions/setup-java@v4
         name: Set up JDK 21
@@ -30,7 +30,7 @@ jobs:
         run: ./mvnw -B verify
 
       - name: Docker build (not pushed)
-        run: docker build -t pathfinder-api:ci .
+        run: docker build --build-arg GIT_SHA=${{ github.sha }} -t pathfinder-api:ci .
 
       - name: Upload test report
         if: always()
