@@ -1,3 +1,6 @@
 spring:
   application:
     name: pathfinder-api
+
+server:
+  port: 8000
