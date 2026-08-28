@@ -6,3 +6,6 @@ app:
   commit: ${APP_COMMIT:unknown}
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
+server:
+  port: 3000

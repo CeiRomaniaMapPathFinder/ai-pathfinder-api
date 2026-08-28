@@ -1,4 +1,4 @@
-package com.ceiromania.pathfinder.api;
+package com.ceiromania.pathfinder.controllers;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
