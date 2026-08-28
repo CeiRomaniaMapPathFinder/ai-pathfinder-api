@@ -18,7 +18,7 @@ public class BfsSearch {
         Queue<String> queue = new ArrayDeque<>();
         Set<String> visited = new HashSet<>();
         List<String> path = new ArrayList<>();
-        Map<Object, Object> result = new HashMap<>();
+        Map<Integer,List<String>> result = new HashMap<>();
         Map<String, String> parentMap = new HashMap<>();
 
         int step = 0;

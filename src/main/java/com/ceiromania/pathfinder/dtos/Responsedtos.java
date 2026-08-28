@@ -11,7 +11,7 @@ public class Responsedtos {
 
     @Setter
     @Getter
-    private Map<Object,Object> routes;
+    private Map<Integer,List<String>> routes;
 
     @Setter
     @Getter
@@ -29,7 +29,7 @@ public class Responsedtos {
     @Getter
     private double runtime;
 
-    public Responsedtos(Map<Object,Object> routes, int totalNodes, int distance, List<String> path, double runtime) {
+    public Responsedtos(Map<Integer,List<String>> routes, int totalNodes, int distance, List<String> path, double runtime) {
         this.routes = routes;
         this.totalNodes = totalNodes;
         this.distance = distance;
