@@ -15,20 +15,27 @@ public class BfsSearch {
     }
 
     public Responsedtos findRoute() {
+        long allocatedBefore = AllocationMeter.allocatedBytes();
+        long startTime = System.nanoTime();
+
         Queue<String> queue = new ArrayDeque<>();
         Set<String> visited = new HashSet<>();
         List<String> path = new ArrayList<>();
+        List<String> expanded = new ArrayList<>();
         Map<Integer,List<String>> result = new HashMap<>();
         Map<String, String> parentMap = new HashMap<>();
 
         int step = 0;
-        long startTime = System.nanoTime();
 
         if (route.getStart().equals(route.getEnd())) {
             path.add(route.getStart());
             result.put(step, new ArrayList<>(path));
             long endTime = System.nanoTime();
-            return new Responsedtos(result, 1, 0, path, (endTime - startTime) / 1_000_000.0);
+            long allocatedAfter = AllocationMeter.allocatedBytes();
+            Responsedtos response = new Responsedtos(result, 1, 0, path, (endTime - startTime) / 1_000_000.0);
+            response.setExpanded(expanded);
+            response.setMemoryUsageKb(AllocationMeter.kbBetween(allocatedBefore, allocatedAfter));
+            return response;
         }
 
         queue.add(route.getStart());
@@ -36,6 +43,7 @@ public class BfsSearch {
 
         while (!queue.isEmpty()) {
             String currentCity = queue.poll();
+            expanded.add(currentCity);
 
             for (String neighbor : RomaniaMap.GRAPH.getOrDefault(currentCity, Collections.emptyMap()).keySet()) {
                 if (neighbor.equals(route.getEnd())) {
@@ -49,15 +57,19 @@ public class BfsSearch {
                     int totalDistance = calculateTotalDistance(finalPath);
 
                     long endTime = System.nanoTime();
+                    long allocatedAfter = AllocationMeter.allocatedBytes();
                     double durationInMs = (endTime - startTime) / 1_000_000.0;
 
-                    return new Responsedtos(
+                    Responsedtos response = new Responsedtos(
                             result,
                             totalNodes,
                             totalDistance,
                             finalPath,
                             durationInMs
                     );
+                    response.setExpanded(expanded);
+                    response.setMemoryUsageKb(AllocationMeter.kbBetween(allocatedBefore, allocatedAfter));
+                    return response;
                 } else if (!visited.contains(neighbor)) {
                     visited.add(neighbor);
                     path.add(neighbor);

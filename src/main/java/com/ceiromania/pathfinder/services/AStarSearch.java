@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * A* with the xGT-v2b heuristic: expand the frontier entry with the smallest f = g + h,
  * ties broken by insertion order, goal test when the goal is expanded (not when generated).
- * route[k] in the response = the city expanded at step k followed by every neighbour it generated.
+ * routes[k] in the response = the city expanded at step k followed by every neighbour it generated.
  */
 public class AStarSearch {
 
@@ -27,9 +27,11 @@ public class AStarSearch {
     public Responseheuristicdtos findRoute() {
         String start = route.getStart();
         String goal = route.getEnd();
-        int hStart = XgtHeuristic.h(goal, start); 
 
+        long allocatedBefore = AllocationMeter.allocatedBytes();
         long startTime = System.nanoTime();
+
+        int hStart = XgtHeuristic.h(goal, start);
 
         PriorityQueue<Entry> frontier = new PriorityQueue<>(
                 Comparator.comparingInt(Entry::f).thenComparingInt(Entry::seq));
@@ -81,14 +83,16 @@ public class AStarSearch {
             step++;
         }
 
-        long endTime = System.nanoTime();
-        double durationInMs = (endTime - startTime) / 1_000_000.0;
-
         List<String> finalPath = reconstructPath(parentMap, goal);
         int totalDistance = calculateTotalDistance(finalPath);
 
+        long endTime = System.nanoTime();
+        long allocatedAfter = AllocationMeter.allocatedBytes();
+        double durationInMs = (endTime - startTime) / 1_000_000.0;
+
         Responseheuristicdtos response = new Responseheuristicdtos(bestG.size(), totalDistance, durationInMs, finalPath);
-        response.setRoute(trace);
+        response.setRoutes(trace);
+        response.setMemoryUsageKb(AllocationMeter.kbBetween(allocatedBefore, allocatedAfter));
         return response;
     }
 
