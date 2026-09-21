@@ -31,14 +31,14 @@ class HeuristicSearchControllerTest {
                 .andExpect(jsonPath("$.totalNodes").value(10))
                 .andExpect(jsonPath("$.path", contains(
                         "Zerind", "Arad", "Sibiu", "Rimnicu Vilcea", "Pitesti", "Bucharest")))
-                .andExpect(jsonPath("$.route['1'][0].town").value("Arad"))
+                .andExpect(jsonPath("$.routes['1'][0].town").value("Arad"))
                 // pins the JSON key spelling the frontend will see
-                .andExpect(jsonPath("$.route['1'][0].gn").value(75))
-                .andExpect(jsonPath("$.route['1'][0].hn").value(453))
-                .andExpect(jsonPath("$.route['1'][0].fn").value(528))
-                .andExpect(jsonPath("$.route['1'][0].expandedAt").value(1))
-                .andExpect(jsonPath("$.route['0'][*].town", hasItem("Oradea")))
-                .andExpect(jsonPath("$.route['5'][0].town").value("Bucharest"))
+                .andExpect(jsonPath("$.routes['1'][0].gn").value(75))
+                .andExpect(jsonPath("$.routes['1'][0].hn").value(453))
+                .andExpect(jsonPath("$.routes['1'][0].fn").value(528))
+                .andExpect(jsonPath("$.routes['1'][0].expandedAt").value(1))
+                .andExpect(jsonPath("$.routes['0'][*].town", hasItem("Oradea")))
+                .andExpect(jsonPath("$.routes['5'][0].town").value("Bucharest"))
                 .andExpect(jsonPath("$.runtime").isNumber());
     }
 
@@ -48,7 +48,7 @@ class HeuristicSearchControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.distance").value(0))
                 .andExpect(jsonPath("$.path", contains("Arad")))
-                .andExpect(jsonPath("$.route['0'][0].expandedAt").value(0));
+                .andExpect(jsonPath("$.routes['0'][0].expandedAt").value(0));
     }
 
     @Test

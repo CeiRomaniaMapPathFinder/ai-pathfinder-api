@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * A* with the xGT-v2b heuristic: expand the frontier entry with the smallest f = g + h,
  * ties broken by insertion order, goal test when the goal is expanded (not when generated).
- * route[k] in the response = the city expanded at step k followed by every neighbour it generated.
+ * routes[k] in the response = the city expanded at step k followed by every neighbour it generated.
  */
 public class AStarSearch {
 
@@ -91,7 +91,7 @@ public class AStarSearch {
         double durationInMs = (endTime - startTime) / 1_000_000.0;
 
         Responseheuristicdtos response = new Responseheuristicdtos(bestG.size(), totalDistance, durationInMs, finalPath);
-        response.setRoute(trace);
+        response.setRoutes(trace);
         response.setMemoryUsageKb(AllocationMeter.kbBetween(allocatedBefore, allocatedAfter));
         return response;
     }

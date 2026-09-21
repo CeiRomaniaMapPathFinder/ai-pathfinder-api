@@ -40,7 +40,7 @@ class AStarSearchTest {
             assertEquals(Integer.parseInt(row[2]), response.getDistance(), label);
             assertEquals(expected, response.getPath(), label);
             assertEquals(expected, expansionOrder(response), label);
-            assertEquals(expected.size(), response.getRoute().size(), label);
+            assertEquals(expected.size(), response.getRoutes().size(), label);
         }
     }
 
@@ -67,8 +67,8 @@ class AStarSearchTest {
         assertEquals(List.of("Arad"), response.getPath());
         assertEquals(0, response.getDistance());
         assertEquals(1, response.getTotalNodes());
-        assertEquals(1, response.getRoute().size());
-        assertEquals(0, response.getRoute().get(0).get(0).getExpandedAt());
+        assertEquals(1, response.getRoutes().size());
+        assertEquals(0, response.getRoutes().get(0).get(0).getExpandedAt());
     }
 
     @Test
@@ -76,7 +76,7 @@ class AStarSearchTest {
         for (String[] row : HANDOFF_ROWS) {
             String label = row[0] + " -> " + row[1];
             Responseheuristicdtos response = search(row[0], row[1]);
-            Map<Integer, List<Nodedtos>> route = response.getRoute();
+            Map<Integer, List<Nodedtos>> route = response.getRoutes();
 
             for (int step = 0; step < route.size(); step++) {
                 Nodedtos expanded = route.get(step).get(0);
@@ -111,8 +111,8 @@ class AStarSearchTest {
 
     private static List<String> expansionOrder(Responseheuristicdtos response) {
         List<String> order = new ArrayList<>();
-        for (int step = 0; step < response.getRoute().size(); step++) {
-            order.add(response.getRoute().get(step).get(0).getTown());
+        for (int step = 0; step < response.getRoutes().size(); step++) {
+            order.add(response.getRoutes().get(step).get(0).getTown());
         }
         return order;
     }
