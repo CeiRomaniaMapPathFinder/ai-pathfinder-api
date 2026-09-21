@@ -24,6 +24,13 @@ public class BfsSearch {
         int step = 0;
         long startTime = System.nanoTime();
 
+        if (route.getStart().equals(route.getEnd())) {
+            path.add(route.getStart());
+            result.put(step, new ArrayList<>(path));
+            long endTime = System.nanoTime();
+            return new Responsedtos(result, 1, 0, path, (endTime - startTime) / 1_000_000.0);
+        }
+
         queue.add(route.getStart());
         visited.add(route.getStart());
 
