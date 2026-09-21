@@ -11,6 +11,7 @@ public class Nodedtos {
     private int gN;
     private int hN;
     private int fN;
+    private int expandedAt = -1; 
 
     public Nodedtos(String town, int gN, int hN, int fN) {
         this.town = town;
