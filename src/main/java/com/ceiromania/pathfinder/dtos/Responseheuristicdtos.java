@@ -11,11 +11,12 @@ import java.util.Map;
 @Getter
 public class Responseheuristicdtos {
 
-    private Map<Integer,List<Nodedtos>> route;
+    private Map<Integer,List<Nodedtos>> routes;
     private int totalNodes;
     private int distance;
     private List<String> path;
     private double runtime;
+    private double memoryUsageKb;
 
     public Responseheuristicdtos(int totalNodes, int distance, double runtime , List<String> path) {
         this.path = path;

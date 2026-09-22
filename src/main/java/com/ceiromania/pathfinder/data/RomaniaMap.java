@@ -1,10 +1,12 @@
 package com.ceiromania.pathfinder.data;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class RomaniaMap {
 
-    public static final Map<String, Map<String, Integer>> GRAPH = Map.ofEntries(
+    public static final Map<String, Map<String, Integer>> GRAPH = sorted(Map.ofEntries(
             Map.entry("Oradea", Map.of(
                     "Zerind", 71,
                     "Sibiu", 151
@@ -110,5 +112,13 @@ public class RomaniaMap {
             Map.entry("Neamt", Map.of(
                     "Iasi", 87
             ))
-    );
+    ));
+
+    private static Map<String, Map<String, Integer>> sorted(Map<String, Map<String, Integer>> roads) {
+        Map<String, Map<String, Integer>> graph = new TreeMap<>();
+        for (Map.Entry<String, Map<String, Integer>> city : roads.entrySet()) {
+            graph.put(city.getKey(), Collections.unmodifiableMap(new TreeMap<>(city.getValue())));
+        }
+        return Collections.unmodifiableMap(graph);
+    }
 }
