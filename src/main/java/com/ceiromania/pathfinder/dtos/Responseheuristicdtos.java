@@ -17,6 +17,11 @@ public class Responseheuristicdtos {
     private List<String> path;
     private double runtime;
     private double memoryUsageKb;
+    private int timedRuns;
+    private int nodesExpanded;
+    private int nodesGenerated;
+    private int peakNodesStored;
+    private double heuristicPrecomputeMs;
 
     public Responseheuristicdtos(int totalNodes, int distance, double runtime , List<String> path) {
         this.path = path;

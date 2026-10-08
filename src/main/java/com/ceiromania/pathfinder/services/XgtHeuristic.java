@@ -26,14 +26,18 @@ public final class XgtHeuristic {
     // computation is reproducible: Map.of iteration order is randomised per JVM start.
     private static final Map<String, Map<String, Integer>> ROADS = new TreeMap<>();
     private static final Map<String, Map<String, Integer>> TABLES = new HashMap<>();
+    // One-off cost of building every table, paid once at class load (cold JVM), never per search.
+    private static final double PRECOMPUTE_MILLIS;
 
     static {
+        long startTime = System.nanoTime();
         for (Map.Entry<String, Map<String, Integer>> city : RomaniaMap.GRAPH.entrySet()) {
             ROADS.put(city.getKey(), new TreeMap<>(city.getValue()));
         }
         for (String goal : ROADS.keySet()) {
             TABLES.put(goal, compute(goal));
         }
+        PRECOMPUTE_MILLIS = (System.nanoTime() - startTime) / 1_000_000.0;
     }
 
     private XgtHeuristic() {
@@ -46,6 +50,11 @@ public final class XgtHeuristic {
 
     public static int h(String goal, String city) {
         return TABLES.get(goal).get(city);
+    }
+
+    /** Time it took to build the tables for all goals, in milliseconds. */
+    public static double precomputeMillis() {
+        return PRECOMPUTE_MILLIS;
     }
 
     private static Map<String, Integer> compute(String goal) {

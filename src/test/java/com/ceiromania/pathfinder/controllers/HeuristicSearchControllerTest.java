@@ -39,7 +39,22 @@ class HeuristicSearchControllerTest {
                 .andExpect(jsonPath("$.routes['1'][0].expandedAt").value(1))
                 .andExpect(jsonPath("$.routes['0'][*].town", hasItem("Oradea")))
                 .andExpect(jsonPath("$.routes['5'][0].town").value("Bucharest"))
-                .andExpect(jsonPath("$.runtime").isNumber());
+                .andExpect(jsonPath("$.runtime").isNumber())
+                .andExpect(jsonPath("$.nodesExpanded").value(6))
+                .andExpect(jsonPath("$.nodesGenerated").value(15))
+                .andExpect(jsonPath("$.peakNodesStored").value(10))
+                .andExpect(jsonPath("$.timedRuns").isNumber())
+                .andExpect(jsonPath("$.heuristicPrecomputeMs").isNumber());
+    }
+
+    @Test
+    void blindSearchReportsTheSameCounters() throws Exception {
+        mvc.perform(get("/api/blind-search").param("start", "Zerind").param("end", "Bucharest"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodesExpanded").value(6))
+                .andExpect(jsonPath("$.nodesGenerated").value(14))
+                .andExpect(jsonPath("$.peakNodesStored").value(8))
+                .andExpect(jsonPath("$.timedRuns").isNumber());
     }
 
     @Test

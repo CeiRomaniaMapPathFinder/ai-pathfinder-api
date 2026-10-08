@@ -11,6 +11,9 @@ import java.util.*;
  * A* with the xGT-v2b heuristic: expand the frontier entry with the smallest f = g + h,
  * ties broken by insertion order, goal test when the goal is expanded (not when generated).
  * routes[k] in the response = the city expanded at step k followed by every neighbour it generated.
+ * Counters use the same rules as BfsSearch: nodesExpanded = cities taken off the frontier (the goal
+ * included, since A* must pop it to know the path is optimal), nodesGenerated = neighbours looked at,
+ * peakNodesStored = largest (frontier entries, stale duplicates included, + expanded cities).
  */
 public class AStarSearch {
 
@@ -24,12 +27,30 @@ public class AStarSearch {
     private record Entry(String city, int g, int h, int f, int seq) {
     }
 
+    /** routes is null when the search ran without its trace. */
+    private record Outcome(List<String> path, int distance, int totalNodes, int nodesExpanded,
+                           int nodesGenerated, int peakNodesStored, Map<Integer, List<Nodedtos>> routes) {
+    }
+
     public Responseheuristicdtos findRoute() {
+        Outcome outcome = search(true);
+        SearchBenchmark.Result cost = SearchBenchmark.measure(() -> search(false).distance());
+
+        Responseheuristicdtos response = new Responseheuristicdtos(
+                outcome.totalNodes(), outcome.distance(), cost.medianMillis(), outcome.path());
+        response.setRoutes(outcome.routes());
+        response.setMemoryUsageKb(cost.medianKb());
+        response.setTimedRuns(cost.runs());
+        response.setNodesExpanded(outcome.nodesExpanded());
+        response.setNodesGenerated(outcome.nodesGenerated());
+        response.setPeakNodesStored(outcome.peakNodesStored());
+        response.setHeuristicPrecomputeMs(XgtHeuristic.precomputeMillis());
+        return response;
+    }
+
+    private Outcome search(boolean traced) {
         String start = route.getStart();
         String goal = route.getEnd();
-
-        long allocatedBefore = AllocationMeter.allocatedBytes();
-        long startTime = System.nanoTime();
 
         int hStart = XgtHeuristic.h(goal, start);
 
@@ -37,63 +58,72 @@ public class AStarSearch {
                 Comparator.comparingInt(Entry::f).thenComparingInt(Entry::seq));
         Map<String, Integer> bestG = new HashMap<>();
         Map<String, String> parentMap = new HashMap<>();
-        Map<String, Nodedtos> pushedAs = new HashMap<>(); // the trace entry each city was last pushed from
         Set<String> closed = new HashSet<>();
-        Map<Integer, List<Nodedtos>> trace = new HashMap<>();
+        // the trace entry each city was last pushed from
+        Map<String, Nodedtos> pushedAs = traced ? new HashMap<>() : null;
+        Map<Integer, List<Nodedtos>> trace = traced ? new HashMap<>() : null;
 
         int seq = 0;
         frontier.add(new Entry(start, 0, hStart, hStart, seq++));
         bestG.put(start, 0);
 
         int step = 0;
+        int nodesExpanded = 0;
+        int nodesGenerated = 0;
+        int peakNodesStored = 1;
+
         while (!frontier.isEmpty()) {
             Entry current = frontier.poll();
             if (closed.contains(current.city())) {
                 continue; // stale entry: this city was already expanded with a better g
             }
             closed.add(current.city());
+            nodesExpanded++;
 
-            Nodedtos expanded = new Nodedtos(current.city(), current.g(), current.h(), current.f());
-            expanded.setExpandedAt(step);
-            if (pushedAs.containsKey(current.city())) {
-                pushedAs.get(current.city()).setExpandedAt(step);
+            List<Nodedtos> generated = null;
+            if (traced) {
+                Nodedtos expanded = new Nodedtos(current.city(), current.g(), current.h(), current.f());
+                expanded.setExpandedAt(step);
+                if (pushedAs.containsKey(current.city())) {
+                    pushedAs.get(current.city()).setExpandedAt(step);
+                }
+                generated = new ArrayList<>();
+                generated.add(expanded);
+                trace.put(step, generated);
             }
-            List<Nodedtos> generated = new ArrayList<>();
-            generated.add(expanded);
-            trace.put(step, generated);
 
             if (current.city().equals(goal)) {
                 break;
             }
 
-            for (Map.Entry<String, Integer> road : new TreeMap<>(RomaniaMap.GRAPH.get(current.city())).entrySet()) {
+            // GRAPH keeps each city's roads sorted by name, so the push order is fixed
+            for (Map.Entry<String, Integer> road : RomaniaMap.GRAPH.get(current.city()).entrySet()) {
+                nodesGenerated++;
                 String neighbor = road.getKey();
                 int g = current.g() + road.getValue();
                 int h = XgtHeuristic.h(goal, neighbor);
-                Nodedtos child = new Nodedtos(neighbor, g, h, g + h);
-                generated.add(child);
+                Nodedtos child = null;
+                if (traced) {
+                    child = new Nodedtos(neighbor, g, h, g + h);
+                    generated.add(child);
+                }
 
                 if (!closed.contains(neighbor) && g < bestG.getOrDefault(neighbor, Integer.MAX_VALUE)) {
                     bestG.put(neighbor, g);
                     parentMap.put(neighbor, current.city());
-                    pushedAs.put(neighbor, child);
+                    if (traced) {
+                        pushedAs.put(neighbor, child);
+                    }
                     frontier.add(new Entry(neighbor, g, h, g + h, seq++));
+                    peakNodesStored = Math.max(peakNodesStored, frontier.size() + closed.size());
                 }
             }
             step++;
         }
 
         List<String> finalPath = reconstructPath(parentMap, goal);
-        int totalDistance = calculateTotalDistance(finalPath);
-
-        long endTime = System.nanoTime();
-        long allocatedAfter = AllocationMeter.allocatedBytes();
-        double durationInMs = (endTime - startTime) / 1_000_000.0;
-
-        Responseheuristicdtos response = new Responseheuristicdtos(bestG.size(), totalDistance, durationInMs, finalPath);
-        response.setRoutes(trace);
-        response.setMemoryUsageKb(AllocationMeter.kbBetween(allocatedBefore, allocatedAfter));
-        return response;
+        return new Outcome(finalPath, calculateTotalDistance(finalPath), bestG.size(),
+                nodesExpanded, nodesGenerated, peakNodesStored, trace);
     }
 
     private List<String> reconstructPath(Map<String, String> parentMap, String end) {
