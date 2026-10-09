@@ -3,12 +3,6 @@ package com.ceiromania.pathfinder.services;
 import java.util.Arrays;
 import java.util.function.IntSupplier;
 
-/**
- * Measures time and allocated memory of BFS and A* for one route in the same call, so both run
- * on the same machine, under the same load and the same JIT state. The searches run without their
- * animation trace, are warmed up together, then timed in batches taking turns, and who goes first
- * swaps every round. A single search takes about a microsecond, too short to time on its own.
- */
 public final class SearchBenchmark {
 
     static final int WARMUP_RUNS = 2_000;
@@ -21,14 +15,12 @@ public final class SearchBenchmark {
     private SearchBenchmark() {
     }
 
-    /** medianMillis / medianKb are per search; runs is how many timed searches they come from. */
     public record Result(double medianMillis, double medianKb, int runs) {
     }
 
     public record Pair(Result bfs, Result astar) {
     }
 
-    /** Each search returns any value derived from its result, e.g. the path cost. */
     public static Pair measure(IntSupplier bfs, IntSupplier astar) {
         long checksum = 0;
         for (int i = 0; i < WARMUP_RUNS; i++) {

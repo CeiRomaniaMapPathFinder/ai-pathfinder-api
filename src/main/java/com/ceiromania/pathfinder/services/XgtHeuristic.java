@@ -6,27 +6,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-/**
- * xGT-v2b heuristic for A*: for a given goal city, h(city) is an integer in road-cost
- * units derived purely from the road list (no shortest-path computation, no coordinates).
- * See HEURISTIC_IMPLEMENTATION_HANDOFF.md section 3 for the model.
- * The table for every goal is computed once at class load and never changes.
- */
 public final class XgtHeuristic {
 
-    private static final double BETA = 0.02;        // preference for short roads
-    private static final double GAMMA = 0.01;       // pass-completion decay; also the unit of h
-    private static final double TAU = 1.5;          // preference for threatening receivers
+    private static final double BETA = 0.02;
+    private static final double GAMMA = 0.01;
+    private static final double TAU = 1.5;
     private static final double INITIAL = 1e-3;
     private static final double CLAMP = 1e-30;
     private static final double TOLERANCE = 1e-12;
     private static final int MAX_ITERATIONS = 100_000;
 
-    // Same roads as RomaniaMap.GRAPH, but with a fixed (sorted) iteration order so the
-    // computation is reproducible: Map.of iteration order is randomised per JVM start.
     private static final Map<String, Map<String, Integer>> ROADS = new TreeMap<>();
     private static final Map<String, Map<String, Integer>> TABLES = new HashMap<>();
-    // One-off cost of building every table, paid once at class load (cold JVM), never per search.
     private static final double PRECOMPUTE_MILLIS;
 
     static {
@@ -43,7 +34,6 @@ public final class XgtHeuristic {
     private XgtHeuristic() {
     }
 
-    /** Full table city -> h for the given goal. */
     public static Map<String, Integer> table(String goal) {
         return TABLES.get(goal);
     }
@@ -52,7 +42,6 @@ public final class XgtHeuristic {
         return TABLES.get(goal).get(city);
     }
 
-    /** Time it took to build the tables for all goals, in milliseconds. */
     public static double precomputeMillis() {
         return PRECOMPUTE_MILLIS;
     }
@@ -90,7 +79,6 @@ public final class XgtHeuristic {
         return h;
     }
 
-    /** One update of a non-goal city: sum over its roads of P(pick road) * C(pass arrives) * xGT(receiver). */
     private static double propagate(Map<String, Integer> roads, Map<String, Double> xgt) {
         double sumPreference = 0.0;
         for (Map.Entry<String, Integer> road : roads.entrySet()) {

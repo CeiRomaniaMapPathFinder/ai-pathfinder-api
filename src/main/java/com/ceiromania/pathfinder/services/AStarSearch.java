@@ -7,14 +7,6 @@ import com.ceiromania.pathfinder.dtos.Routedtos;
 
 import java.util.*;
 
-/**
- * A* with the xGT-v2b heuristic: expand the frontier entry with the smallest f = g + h,
- * ties broken by insertion order, goal test when the goal is expanded (not when generated).
- * routes[k] in the response = the city expanded at step k followed by every neighbour it generated.
- * Counters use the same rules as BfsSearch: nodesExpanded = cities taken off the frontier (the goal
- * included, since A* must pop it to know the path is optimal), nodesGenerated = neighbours looked at,
- * peakNodesStored = largest (frontier entries, stale duplicates included, + expanded cities).
- */
 public class AStarSearch {
 
     private final Routedtos route;
@@ -23,11 +15,9 @@ public class AStarSearch {
         this.route = route;
     }
 
-    /** One way of reaching a city. seq is the push counter so equal f expands in insertion order. */
     private record Entry(String city, int g, int h, int f, int seq) {
     }
 
-    /** routes is null when the search ran without its trace. */
     private record Outcome(List<String> path, int distance, int totalNodes, int nodesExpanded,
                            int nodesGenerated, int peakNodesStored, Map<Integer, List<Nodedtos>> routes) {
     }
@@ -45,7 +35,6 @@ public class AStarSearch {
         return response;
     }
 
-    /** The search SearchBenchmark times: no trace, result reduced to the path cost. */
     public int searchWithoutTrace() {
         return search(false).distance();
     }
@@ -61,7 +50,6 @@ public class AStarSearch {
         Map<String, Integer> bestG = new HashMap<>();
         Map<String, String> parentMap = new HashMap<>();
         Set<String> closed = new HashSet<>();
-        // the trace entry each city was last pushed from
         Map<String, Nodedtos> pushedAs = traced ? new HashMap<>() : null;
         Map<Integer, List<Nodedtos>> trace = traced ? new HashMap<>() : null;
 

@@ -72,7 +72,6 @@ class BfsSearchTest {
     void countersFollowTheSharedRules() {
         Responsedtos response = new BfsSearch(Routedtos.builder().start("Arad").end("Bucharest").build()).findRoute();
 
-        // goal is generated while expanding Fagaras and never taken off the queue
         assertEquals(response.getExpanded().size(), response.getNodesExpanded());
         assertEquals(5, response.getNodesExpanded());
         assertEquals(12, response.getNodesGenerated());

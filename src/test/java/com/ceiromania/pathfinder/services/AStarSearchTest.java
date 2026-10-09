@@ -84,7 +84,6 @@ class AStarSearchTest {
                 assertEquals(step, expanded.getExpandedAt(), label + " step " + step);
                 assertEquals(expanded.getGN() + expanded.getHN(), expanded.getFN(), label + " step " + step);
 
-                // every expanded city except the start was generated exactly once as a child marked with its step
                 if (step > 0) {
                     List<Nodedtos> matches = new ArrayList<>();
                     for (List<Nodedtos> generated : route.values()) {

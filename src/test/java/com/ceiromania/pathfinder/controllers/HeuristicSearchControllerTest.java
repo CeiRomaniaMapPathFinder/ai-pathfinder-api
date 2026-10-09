@@ -14,7 +14,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** Sends HTTP requests through the full Spring stack: routing, param binding, JSON, exception handler. */
 @SpringBootTest
 @AutoConfigureMockMvc
 class HeuristicSearchControllerTest {
@@ -32,7 +31,6 @@ class HeuristicSearchControllerTest {
                 .andExpect(jsonPath("$.path", contains(
                         "Zerind", "Arad", "Sibiu", "Rimnicu Vilcea", "Pitesti", "Bucharest")))
                 .andExpect(jsonPath("$.routes['1'][0].town").value("Arad"))
-                // pins the JSON key spelling the frontend will see
                 .andExpect(jsonPath("$.routes['1'][0].gn").value(75))
                 .andExpect(jsonPath("$.routes['1'][0].hn").value(453))
                 .andExpect(jsonPath("$.routes['1'][0].fn").value(528))

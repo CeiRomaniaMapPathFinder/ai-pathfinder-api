@@ -6,11 +6,6 @@ import com.ceiromania.pathfinder.dtos.Routedtos;
 
 import java.util.*;
 
-/**
- * Breadth-first search, goal test when the goal is generated. Counters use the same rules as
- * AStarSearch: nodesExpanded = cities taken off the frontier, nodesGenerated = neighbours looked at,
- * peakNodesStored = largest (frontier entries + expanded cities) at any moment.
- */
 public class BfsSearch {
 
     private final Routedtos route;
@@ -19,7 +14,6 @@ public class BfsSearch {
         this.route = route;
     }
 
-    /** routes and expanded are null when the search ran without its trace. */
     private record Outcome(List<String> path, int distance, int totalNodes, int nodesExpanded,
                            int nodesGenerated, int peakNodesStored,
                            Map<Integer, List<String>> routes, List<String> expanded) {
@@ -44,7 +38,6 @@ public class BfsSearch {
         return response;
     }
 
-    /** The search SearchBenchmark times: no trace, result reduced to the path cost. */
     public int searchWithoutTrace() {
         return search(false).distance();
     }
@@ -94,7 +87,7 @@ public class BfsSearch {
                     }
 
                     List<String> finalPath = reconstructPath(parentMap, goal);
-                    // totalNodes = distinct cities reached, goal included (same as A*)
+                    // + 1 for the goal, which BFS never adds to visited
                     return new Outcome(finalPath, calculateTotalDistance(finalPath), visited.size() + 1,
                             nodesExpanded, nodesGenerated, peakNodesStored, result, expanded);
                 } else if (!visited.contains(neighbor)) {

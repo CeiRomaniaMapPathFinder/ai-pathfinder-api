@@ -9,7 +9,6 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Expected values are copied from HEURISTIC_IMPLEMENTATION_HANDOFF.md section 4. */
 class XgtHeuristicTest {
 
     @Test
@@ -54,7 +53,6 @@ class XgtHeuristicTest {
         }
     }
 
-    /** Parses the handoff's "City h, City h, ..." notation. */
     private static Map<String, Integer> expected(String spec) {
         Map<String, Integer> table = new HashMap<>();
         for (String item : spec.split(",")) {
