@@ -30,22 +30,23 @@ public class BfsSearch {
         if (outcome == null) {
             return null;
         }
-        SearchBenchmark.Result cost = SearchBenchmark.measure(() -> search(false).distance());
 
         Responsedtos response = new Responsedtos(
                 outcome.routes(),
                 outcome.totalNodes(),
                 outcome.distance(),
-                outcome.path(),
-                cost.medianMillis()
+                outcome.path()
         );
         response.setExpanded(outcome.expanded());
-        response.setMemoryUsageKb(cost.medianKb());
-        response.setTimedRuns(cost.runs());
         response.setNodesExpanded(outcome.nodesExpanded());
         response.setNodesGenerated(outcome.nodesGenerated());
         response.setPeakNodesStored(outcome.peakNodesStored());
         return response;
+    }
+
+    /** The search SearchBenchmark times: no trace, result reduced to the path cost. */
+    public int searchWithoutTrace() {
+        return search(false).distance();
     }
 
     private Outcome search(boolean traced) {

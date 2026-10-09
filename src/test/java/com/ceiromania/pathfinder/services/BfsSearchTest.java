@@ -81,15 +81,6 @@ class BfsSearchTest {
     }
 
     @Test
-    void timeAndMemoryComeFromTheBenchmark() {
-        Responsedtos response = new BfsSearch(Routedtos.builder().start("Arad").end("Bucharest").build()).findRoute();
-
-        assertEquals(SearchBenchmark.BATCHES * SearchBenchmark.RUNS_PER_BATCH, response.getTimedRuns());
-        assertTrue(response.getRuntime() > 0);
-        assertTrue(response.getMemoryUsageKb() > 0);
-    }
-
-    @Test
     void startEqualsEndExpandsNothing() {
         Responsedtos response = new BfsSearch(Routedtos.builder().start("Arad").end("Arad").build()).findRoute();
 

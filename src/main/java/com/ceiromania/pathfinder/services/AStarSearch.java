@@ -34,18 +34,20 @@ public class AStarSearch {
 
     public Responseheuristicdtos findRoute() {
         Outcome outcome = search(true);
-        SearchBenchmark.Result cost = SearchBenchmark.measure(() -> search(false).distance());
 
         Responseheuristicdtos response = new Responseheuristicdtos(
-                outcome.totalNodes(), outcome.distance(), cost.medianMillis(), outcome.path());
+                outcome.totalNodes(), outcome.distance(), outcome.path());
         response.setRoutes(outcome.routes());
-        response.setMemoryUsageKb(cost.medianKb());
-        response.setTimedRuns(cost.runs());
         response.setNodesExpanded(outcome.nodesExpanded());
         response.setNodesGenerated(outcome.nodesGenerated());
         response.setPeakNodesStored(outcome.peakNodesStored());
         response.setHeuristicPrecomputeMs(XgtHeuristic.precomputeMillis());
         return response;
+    }
+
+    /** The search SearchBenchmark times: no trace, result reduced to the path cost. */
+    public int searchWithoutTrace() {
+        return search(false).distance();
     }
 
     private Outcome search(boolean traced) {

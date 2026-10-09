@@ -4,11 +4,10 @@ import java.util.Arrays;
 import java.util.function.IntSupplier;
 
 /**
- * Measures time and allocated memory of one search the same way for every algorithm.
- * The search is run without its animation trace, warmed up, then timed in batches;
- * each batch gives a per-search figure and the median batch is reported, so a single
- * GC pause or OS hiccup cannot decide the result. A single search takes about a
- * microsecond, too short to time on its own.
+ * Measures time and allocated memory of BFS and A* for one route in the same call, so both run
+ * on the same machine, under the same load and the same JIT state. The searches run without their
+ * animation trace, are warmed up together, then timed in batches taking turns, and who goes first
+ * swaps every round. A single search takes about a microsecond, too short to time on its own.
  */
 public final class SearchBenchmark {
 
@@ -26,30 +25,42 @@ public final class SearchBenchmark {
     public record Result(double medianMillis, double medianKb, int runs) {
     }
 
-    /** search returns any value derived from its result, e.g. the path cost. */
-    public static Result measure(IntSupplier search) {
+    public record Pair(Result bfs, Result astar) {
+    }
+
+    /** Each search returns any value derived from its result, e.g. the path cost. */
+    public static Pair measure(IntSupplier bfs, IntSupplier astar) {
         long checksum = 0;
         for (int i = 0; i < WARMUP_RUNS; i++) {
-            checksum += search.getAsInt();
+            checksum += bfs.getAsInt();
+            checksum += astar.getAsInt();
         }
 
-        double[] millis = new double[BATCHES];
-        double[] kb = new double[BATCHES];
+        IntSupplier[] searches = {bfs, astar};
+        double[][] millis = new double[2][BATCHES];
+        double[][] kb = new double[2][BATCHES];
         for (int batch = 0; batch < BATCHES; batch++) {
-            long allocatedBefore = AllocationMeter.allocatedBytes();
-            long startTime = System.nanoTime();
-            for (int i = 0; i < RUNS_PER_BATCH; i++) {
-                checksum += search.getAsInt();
-            }
-            long endTime = System.nanoTime();
-            long allocatedAfter = AllocationMeter.allocatedBytes();
+            for (int turn = 0; turn < 2; turn++) {
+                int which = (batch + turn) % 2;
+                long allocatedBefore = AllocationMeter.allocatedBytes();
+                long startTime = System.nanoTime();
+                for (int i = 0; i < RUNS_PER_BATCH; i++) {
+                    checksum += searches[which].getAsInt();
+                }
+                long endTime = System.nanoTime();
+                long allocatedAfter = AllocationMeter.allocatedBytes();
 
-            millis[batch] = (endTime - startTime) / 1_000_000.0 / RUNS_PER_BATCH;
-            double batchKb = AllocationMeter.kbBetween(allocatedBefore, allocatedAfter);
-            kb[batch] = batchKb < 0 ? -1 : batchKb / RUNS_PER_BATCH;
+                millis[which][batch] = (endTime - startTime) / 1_000_000.0 / RUNS_PER_BATCH;
+                double batchKb = AllocationMeter.kbBetween(allocatedBefore, allocatedAfter);
+                kb[which][batch] = batchKb < 0 ? -1 : batchKb / RUNS_PER_BATCH;
+            }
         }
         sink = checksum;
 
+        return new Pair(result(millis[0], kb[0]), result(millis[1], kb[1]));
+    }
+
+    private static Result result(double[] millis, double[] kb) {
         return new Result(median(millis), median(kb), BATCHES * RUNS_PER_BATCH);
     }
 

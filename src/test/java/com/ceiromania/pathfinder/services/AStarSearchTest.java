@@ -129,12 +129,9 @@ class AStarSearchTest {
     }
 
     @Test
-    void timeMemoryAndPrecomputeAreReported() {
+    void heuristicPrecomputeIsReported() {
         Responseheuristicdtos response = search("Arad", "Bucharest");
 
-        assertEquals(SearchBenchmark.BATCHES * SearchBenchmark.RUNS_PER_BATCH, response.getTimedRuns());
-        assertTrue(response.getRuntime() > 0);
-        assertTrue(response.getMemoryUsageKb() > 0);
         assertTrue(response.getHeuristicPrecomputeMs() > 0);
     }
 
