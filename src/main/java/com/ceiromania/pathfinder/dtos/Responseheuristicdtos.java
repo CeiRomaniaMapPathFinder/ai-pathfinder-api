@@ -15,13 +15,14 @@ public class Responseheuristicdtos {
     private int totalNodes;
     private int distance;
     private List<String> path;
-    private double runtime;
-    private double memoryUsageKb;
+    private int nodesExpanded;
+    private int nodesGenerated;
+    private int peakNodesStored;
+    private double heuristicPrecomputeMs;
 
-    public Responseheuristicdtos(int totalNodes, int distance, double runtime , List<String> path) {
+    public Responseheuristicdtos(int totalNodes, int distance, List<String> path) {
         this.path = path;
         this.totalNodes = totalNodes;
         this.distance = distance;
-        this.runtime = runtime;
     }
 }

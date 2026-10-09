@@ -14,7 +14,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** Sends HTTP requests through the full Spring stack: routing, param binding, JSON, exception handler. */
 @SpringBootTest
 @AutoConfigureMockMvc
 class HeuristicSearchControllerTest {
@@ -32,14 +31,25 @@ class HeuristicSearchControllerTest {
                 .andExpect(jsonPath("$.path", contains(
                         "Zerind", "Arad", "Sibiu", "Rimnicu Vilcea", "Pitesti", "Bucharest")))
                 .andExpect(jsonPath("$.routes['1'][0].town").value("Arad"))
-                // pins the JSON key spelling the frontend will see
                 .andExpect(jsonPath("$.routes['1'][0].gn").value(75))
                 .andExpect(jsonPath("$.routes['1'][0].hn").value(453))
                 .andExpect(jsonPath("$.routes['1'][0].fn").value(528))
                 .andExpect(jsonPath("$.routes['1'][0].expandedAt").value(1))
                 .andExpect(jsonPath("$.routes['0'][*].town", hasItem("Oradea")))
                 .andExpect(jsonPath("$.routes['5'][0].town").value("Bucharest"))
-                .andExpect(jsonPath("$.runtime").isNumber());
+                .andExpect(jsonPath("$.nodesExpanded").value(6))
+                .andExpect(jsonPath("$.nodesGenerated").value(15))
+                .andExpect(jsonPath("$.peakNodesStored").value(10))
+                .andExpect(jsonPath("$.heuristicPrecomputeMs").isNumber());
+    }
+
+    @Test
+    void blindSearchReportsTheSameCounters() throws Exception {
+        mvc.perform(get("/api/blind-search").param("start", "Zerind").param("end", "Bucharest"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodesExpanded").value(6))
+                .andExpect(jsonPath("$.nodesGenerated").value(14))
+                .andExpect(jsonPath("$.peakNodesStored").value(8));
     }
 
     @Test

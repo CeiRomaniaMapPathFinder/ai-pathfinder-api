@@ -11,6 +11,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AStarSearchTest {
 
@@ -83,7 +84,6 @@ class AStarSearchTest {
                 assertEquals(step, expanded.getExpandedAt(), label + " step " + step);
                 assertEquals(expanded.getGN() + expanded.getHN(), expanded.getFN(), label + " step " + step);
 
-                // every expanded city except the start was generated exactly once as a child marked with its step
                 if (step > 0) {
                     List<Nodedtos> matches = new ArrayList<>();
                     for (List<Nodedtos> generated : route.values()) {
@@ -103,6 +103,44 @@ class AStarSearchTest {
             assertEquals(response.getDistance(), goal.getGN(), label + " g(goal) equals path cost");
             assertEquals(0, goal.getHN(), label + " h(goal)");
         }
+    }
+
+    @Test
+    void nodesExpandedCountsEveryTraceStepGoalIncluded() {
+        for (String[] row : HANDOFF_ROWS) {
+            Responseheuristicdtos response = search(row[0], row[1]);
+            assertEquals(response.getRoutes().size(), response.getNodesExpanded(), row[0] + " -> " + row[1]);
+        }
+    }
+
+    @Test
+    void countersFollowTheSharedRules() {
+        Responseheuristicdtos response = search("Arad", "Bucharest");
+
+        assertEquals(5, response.getNodesExpanded());
+        assertEquals(13, response.getNodesGenerated());
+        assertEquals(10, response.getPeakNodesStored());
+
+        Responseheuristicdtos longer = search("Oradea", "Eforie");
+        assertEquals(8, longer.getNodesExpanded());
+        assertEquals(21, longer.getNodesGenerated());
+        assertEquals(14, longer.getPeakNodesStored());
+    }
+
+    @Test
+    void heuristicPrecomputeIsReported() {
+        Responseheuristicdtos response = search("Arad", "Bucharest");
+
+        assertTrue(response.getHeuristicPrecomputeMs() > 0);
+    }
+
+    @Test
+    void startEqualsEndExpandsOnlyTheGoal() {
+        Responseheuristicdtos response = search("Arad", "Arad");
+
+        assertEquals(1, response.getNodesExpanded());
+        assertEquals(0, response.getNodesGenerated());
+        assertEquals(1, response.getPeakNodesStored());
     }
 
     private static Responseheuristicdtos search(String start, String end) {

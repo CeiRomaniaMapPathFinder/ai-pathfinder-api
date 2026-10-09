@@ -14,72 +14,97 @@ public class BfsSearch {
         this.route = route;
     }
 
+    private record Outcome(List<String> path, int distance, int totalNodes, int nodesExpanded,
+                           int nodesGenerated, int peakNodesStored,
+                           Map<Integer, List<String>> routes, List<String> expanded) {
+    }
+
     public Responsedtos findRoute() {
-        long allocatedBefore = AllocationMeter.allocatedBytes();
-        long startTime = System.nanoTime();
+        Outcome outcome = search(true);
+        if (outcome == null) {
+            return null;
+        }
+
+        Responsedtos response = new Responsedtos(
+                outcome.routes(),
+                outcome.totalNodes(),
+                outcome.distance(),
+                outcome.path()
+        );
+        response.setExpanded(outcome.expanded());
+        response.setNodesExpanded(outcome.nodesExpanded());
+        response.setNodesGenerated(outcome.nodesGenerated());
+        response.setPeakNodesStored(outcome.peakNodesStored());
+        return response;
+    }
+
+    public int searchWithoutTrace() {
+        return search(false).distance();
+    }
+
+    private Outcome search(boolean traced) {
+        String start = route.getStart();
+        String goal = route.getEnd();
+
+        Map<Integer, List<String>> result = traced ? new HashMap<>() : null;
+        List<String> expanded = traced ? new ArrayList<>() : null;
+
+        if (start.equals(goal)) {
+            List<String> path = new ArrayList<>(List.of(start));
+            if (traced) {
+                result.put(0, new ArrayList<>(path));
+            }
+            return new Outcome(path, 0, 1, 0, 0, 1, result, expanded);
+        }
 
         Queue<String> queue = new ArrayDeque<>();
         Set<String> visited = new HashSet<>();
-        List<String> path = new ArrayList<>();
-        List<String> expanded = new ArrayList<>();
-        Map<Integer,List<String>> result = new HashMap<>();
         Map<String, String> parentMap = new HashMap<>();
+        List<String> generated = traced ? new ArrayList<>() : null;
+
+        queue.add(start);
+        visited.add(start);
 
         int step = 0;
-
-        if (route.getStart().equals(route.getEnd())) {
-            path.add(route.getStart());
-            result.put(step, new ArrayList<>(path));
-            long endTime = System.nanoTime();
-            long allocatedAfter = AllocationMeter.allocatedBytes();
-            Responsedtos response = new Responsedtos(result, 1, 0, path, (endTime - startTime) / 1_000_000.0);
-            response.setExpanded(expanded);
-            response.setMemoryUsageKb(AllocationMeter.kbBetween(allocatedBefore, allocatedAfter));
-            return response;
-        }
-
-        queue.add(route.getStart());
-        visited.add(route.getStart());
+        int nodesExpanded = 0;
+        int nodesGenerated = 0;
+        int peakNodesStored = 1;
 
         while (!queue.isEmpty()) {
             String currentCity = queue.poll();
-            expanded.add(currentCity);
+            nodesExpanded++;
+            if (traced) {
+                expanded.add(currentCity);
+            }
 
             for (String neighbor : RomaniaMap.GRAPH.getOrDefault(currentCity, Collections.emptyMap()).keySet()) {
-                if (neighbor.equals(route.getEnd())) {
+                nodesGenerated++;
+                if (neighbor.equals(goal)) {
                     parentMap.put(neighbor, currentCity);
-                    path.add(neighbor);
-                    result.put(step, new ArrayList<>(path));
+                    if (traced) {
+                        generated.add(neighbor);
+                        result.put(step, new ArrayList<>(generated));
+                    }
 
-                    int totalNodes = visited.size();
-
-                    List<String> finalPath = reconstructPath(parentMap, route.getEnd());
-                    int totalDistance = calculateTotalDistance(finalPath);
-
-                    long endTime = System.nanoTime();
-                    long allocatedAfter = AllocationMeter.allocatedBytes();
-                    double durationInMs = (endTime - startTime) / 1_000_000.0;
-
-                    Responsedtos response = new Responsedtos(
-                            result,
-                            totalNodes,
-                            totalDistance,
-                            finalPath,
-                            durationInMs
-                    );
-                    response.setExpanded(expanded);
-                    response.setMemoryUsageKb(AllocationMeter.kbBetween(allocatedBefore, allocatedAfter));
-                    return response;
+                    List<String> finalPath = reconstructPath(parentMap, goal);
+                    // + 1 for the goal, which BFS never adds to visited
+                    return new Outcome(finalPath, calculateTotalDistance(finalPath), visited.size() + 1,
+                            nodesExpanded, nodesGenerated, peakNodesStored, result, expanded);
                 } else if (!visited.contains(neighbor)) {
                     visited.add(neighbor);
-                    path.add(neighbor);
                     parentMap.put(neighbor, currentCity);
                     queue.add(neighbor);
+                    if (traced) {
+                        generated.add(neighbor);
+                    }
+                    peakNodesStored = Math.max(peakNodesStored, queue.size() + nodesExpanded);
                 }
             }
 
-            result.put(step, new ArrayList<>(path));
-            path.clear();
+            if (traced) {
+                result.put(step, new ArrayList<>(generated));
+                generated.clear();
+            }
             step++;
         }
 

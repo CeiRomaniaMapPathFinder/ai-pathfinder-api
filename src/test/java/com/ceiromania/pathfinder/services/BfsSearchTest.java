@@ -67,4 +67,24 @@ class BfsSearchTest {
         assertTrue(routes.get(routes.size() - 1).contains("Bucharest"));
         assertFalse(expanded.contains("Bucharest"));
     }
+
+    @Test
+    void countersFollowTheSharedRules() {
+        Responsedtos response = new BfsSearch(Routedtos.builder().start("Arad").end("Bucharest").build()).findRoute();
+
+        assertEquals(response.getExpanded().size(), response.getNodesExpanded());
+        assertEquals(5, response.getNodesExpanded());
+        assertEquals(12, response.getNodesGenerated());
+        assertEquals(8, response.getPeakNodesStored());
+        assertEquals(9, response.getTotalNodes());
+    }
+
+    @Test
+    void startEqualsEndExpandsNothing() {
+        Responsedtos response = new BfsSearch(Routedtos.builder().start("Arad").end("Arad").build()).findRoute();
+
+        assertEquals(0, response.getNodesExpanded());
+        assertEquals(0, response.getNodesGenerated());
+        assertEquals(1, response.getPeakNodesStored());
+    }
 }

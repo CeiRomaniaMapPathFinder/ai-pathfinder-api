@@ -27,21 +27,24 @@ public class Responsedtos {
 
     @Setter
     @Getter
-    private double runtime;
-
-    @Setter
-    @Getter
     private List<String> expanded;
 
     @Setter
     @Getter
-    private double memoryUsageKb;
+    private int nodesExpanded;
 
-    public Responsedtos(Map<Integer,List<String>> routes, int totalNodes, int distance, List<String> path, double runtime) {
+    @Setter
+    @Getter
+    private int nodesGenerated;
+
+    @Setter
+    @Getter
+    private int peakNodesStored;
+
+    public Responsedtos(Map<Integer,List<String>> routes, int totalNodes, int distance, List<String> path) {
         this.routes = routes;
         this.totalNodes = totalNodes;
         this.distance = distance;
         this.path = path;
-        this.runtime=runtime;
     }
 }
